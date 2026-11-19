@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Radar KRL de Supply Chain</title>
+<link rel="icon" href="img/icone-krl.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Red+Hat+Display:wght@500;800&family=Red+Hat+Text:wght@400;500;700&display=swap">
+<style>
+/* VOICE: graphics desk of a business paper, written for the operations floor: finding first, then what to do.
+   IDEA: a supply-chain news portal crossed with a weather radar: risk read as colour-coded cells, editorias by colour.
+   PICTURE: status field of rounded colour tiles (turquoise normal, yellow attention, red alert) under a yellow rule and a live headline ticker.
+   COLOUR and TYPE: graphite #0c0a10 / white; accents yellow #ebca0c, purple #8e2694, turquoise #0cb2ba, orange #f08a28; Red Hat Display 800 + Red Hat Text.
+   LAYOUT: ticker, headline + summary, status grid; blocks as bands with a coloured editoria tag, tables and 20px-radius news cards. */
+:root{color-scheme:light dark;--bg:light-dark(#fff,#09060f);--bg2:light-dark(#f6f3fb,#141020);--bg3:light-dark(#ece6f7,#221a33);--ink:light-dark(#111014,#f4f3f6);--mute:light-dark(rgba(17,16,20,.66),rgba(244,243,246,.68));--line:light-dark(rgba(17,16,20,.11),rgba(255,255,255,.11));--am:#a855f7;--ro:#7c3aed;--az:#c4b5fd;--la:#e9d5ff;--vivo:#e11d48;--lk:light-dark(#6d28d9,#c4b5fd);--plot:light-dark(#6d28d9,#c084fc);--vd:#8b5cf6;--ght:#d8b4fe;--az2:#ddd6fe;--co:light-dark(#c4001a,#ff7a70);--r:20px}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+body{margin:0;background:var(--bg)}
+.r{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 "Red Hat Text",system-ui,sans-serif;overflow-x:clip;min-height:100vh;border-top:4px solid var(--am)}
+.band{padding:clamp(28px,4vw,56px) max(5vw,16px)}
+.w{max-width:1240px;margin:0 auto}
+h1,h2,h3{font-family:"Red Hat Display",system-ui,sans-serif;margin:0}
+h1{font-weight:800;font-size:clamp(32px,4.6vw,52px);line-height:1.05;text-wrap:balance}
+.hd{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:20px 48px;align-items:end}.hd .lede{margin:0}
+@media(max-width:900px){.hd{grid-template-columns:minmax(0,1fr)}}
+h2{font-weight:800;font-size:clamp(26px,3vw,34px);line-height:1.1}
+h3{font-weight:500;font-size:19px;line-height:1.3}
+a{color:var(--lk)}a:focus-visible,button:focus-visible{outline:2px solid var(--am);outline-offset:2px}
+.kick{color:var(--mute);font-size:14px;display:flex;flex-wrap:wrap;gap:6px 18px;margin-bottom:18px;align-items:center}
+.kick b{color:var(--ink);font-weight:700}
+.lede{max-width:70ch;color:var(--mute);margin:18px 0 0}
+.tick{display:flex;align-items:center;gap:0;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--bg2);margin:0 0 28px}
+.tick>b{flex:none;background:var(--am);color:#fff;font:800 13px "Red Hat Display",sans-serif;padding:12px 18px;clip-path:polygon(0 0,100% 0,88% 100%,0 100%);padding-right:28px}
+.tick .vp{overflow:hidden;flex:1}
+.tick .tr{display:flex;gap:36px;white-space:nowrap;padding:0 18px;font-size:14px;width:max-content}
+.tick .tr span{display:flex;gap:10px;align-items:center}.tick .tr i{font-style:normal;font-size:12px;font-weight:700;color:var(--mute)}
+.tick .tr span::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--am)}
+@media(prefers-reduced-motion:no-preference){.tick .tr{animation:mq 70s linear infinite}.tick:hover .tr{animation-play-state:paused}@keyframes mq{to{transform:translateX(-50%)}}}
+.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:32px}
+.cell{padding:20px;display:flex;flex-direction:column;gap:4px;min-height:168px;border-radius:var(--r)}
+.cell.normal{background:var(--az);color:#1e0b3a}.cell.atencao{background:var(--am);color:#fff}
+.cell.alerta{background:var(--vivo);color:#fff}.cell.semdado{background:var(--bg3);color:var(--mute);background-image:repeating-linear-gradient(135deg,transparent 0 10px,rgba(127,127,127,.08) 10px 20px)}
+.cell .c{font-size:14px;font-weight:700}.cell .v{font:800 clamp(26px,3vw,34px)/1.05 "Red Hat Display",sans-serif;white-space:nowrap}
+.cell .t{font-size:13px;font-weight:700}
+.cell .n{font-size:14px;line-height:1.35}.cell .s{font-size:13px;opacity:.8;margin-top:auto}
+.legend{display:flex;align-items:center;gap:12px;margin-top:14px;font-size:13px;color:var(--mute);flex-wrap:wrap}
+.legend span.k{display:flex;align-items:center;gap:6px}.legend span.k::before{content:"";width:14px;height:14px;border-radius:4px;background:var(--c)}
+nav.scroll{display:flex;gap:6px 22px;overflow-x:auto;padding:0 max(5vw,16px);border-top:1px solid var(--line);border-bottom:1px solid var(--line);background:color-mix(in srgb,var(--bg) 85%,transparent);backdrop-filter:blur(10px)}
+nav.scroll a{flex:none;color:var(--ink);text-decoration:none;font:700 13px "Red Hat Text",sans-serif;min-height:48px;display:flex;align-items:center;gap:8px;text-transform:uppercase;letter-spacing:.03em}
+nav.scroll a::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--c,var(--mute))}
+nav.scroll a:hover{color:var(--lk)}
+@media(min-width:900px){nav.scroll{position:sticky;top:0;z-index:5}}
+.bh{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;margin-bottom:6px}
+.num{font:800 12px "Red Hat Display",sans-serif;color:var(--ink);display:flex;align-items:center;gap:7px;text-transform:uppercase;letter-spacing:.04em}
+.num::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--c)}
+.obj{color:var(--mute);margin:0 0 24px}
+.alt{background:var(--bg2)}.alt .card,.alt .panel{background:var(--bg)}
+#metodo .panel{align-self:start}#metodo .panel .lede{color:var(--ink)}
+.two{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:24px}
+@media(max-width:860px){.two{grid-template-columns:minmax(0,1fr)}}
+.panel{background:var(--bg2);border:1px solid var(--line);border-radius:var(--r);padding:20px}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.tabs button{font:500 14px "Red Hat Text",sans-serif;color:var(--ink);background:transparent;border:1px solid var(--line);border-radius:22px;min-height:44px;padding:0 16px;cursor:pointer}
+.tabs button[aria-pressed=true]{background:var(--am);color:#fff;border-color:var(--am)}
+.figtop{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap}
+.big{font:800 clamp(30px,4vw,44px)/1 "Red Hat Display",sans-serif}.chg{font-size:15px;font-weight:700}
+.up{color:var(--vivo)}.dn{color:var(--lk)}
+.fig{position:relative;min-height:300px;max-height:540px;flex:1;margin-top:8px}.fxp{display:flex;flex-direction:column}.fig>svg{position:absolute;inset:0;width:100%;height:100%}
+.fig .gl{stroke:var(--line)}.fig .tx{fill:var(--mute);font-size:12px}.fig .pl{stroke:var(--plot)}.fig .hl{stroke:var(--ink);stroke-opacity:.5}.fig .hc{fill:var(--ink)}
+.tip{position:absolute;pointer-events:none;background:var(--ink);color:var(--bg);font-size:13px;padding:6px 10px;border-radius:8px;white-space:nowrap;display:none;z-index:2}
+.src{font-size:13px;color:var(--mute);margin-top:8px}
+table{width:100%;border-collapse:collapse;font-size:15px}
+th{text-align:left;font-weight:500;color:var(--mute);font-size:13px;padding:8px 8px 8px 0;border-bottom:1px solid var(--line)}
+td{padding:10px 8px 10px 0;border-bottom:1px solid var(--line);vertical-align:top}
+td.nb{text-align:right;white-space:nowrap;font-weight:700}
+.bars{display:grid;gap:3px;margin-top:8px}
+.bar{display:grid;grid-template-columns:62px minmax(0,1fr) 44px;gap:8px;align-items:center;font-size:13px;line-height:1.5}
+.bar i{display:block;height:10px;border-radius:6px;background:var(--az)}.bar i.hot{background:var(--am)}
+.bar span:last-child{text-align:right}
+.news{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin-top:24px}
+@media(max-width:860px){.news{grid-template-columns:minmax(0,1fr)}}
+.card[hidden]{display:none}.card{background:var(--bg2);border:1px solid var(--line);border-radius:var(--r);padding:22px;display:flex;flex-direction:column;gap:10px;transition:transform .2s}
+.card:hover{transform:translateY(-2px)}
+.card h3 a{color:var(--ink);text-decoration:none}.card h3 a:hover{text-decoration:underline}
+.meta{font-size:13px;color:var(--mute)}
+.card p{margin:0;font-size:15px;color:var(--mute)}
+.tags{display:flex;gap:6px;flex-wrap:wrap}
+.tag{font-size:13px;padding:3px 10px;border-radius:12px;background:var(--bg3);white-space:nowrap}
+.tag.Alto,.tag.Alta{background:var(--vivo);color:#fff}.tag.Médio,.tag.Média{background:var(--am);color:#fff}.tag.Baixo,.tag.Baixa{background:var(--az);color:#1e0b3a}
+.acts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 14px;border-top:1px solid var(--line);padding-top:12px}
+.acts div{font-size:14px;line-height:1.4}.acts b{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.03em;color:var(--ink)}
+.acts b::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--c)}
+.acts .na{color:var(--mute)}
+@media(max-width:480px){.acts{grid-template-columns:minmax(0,1fr)}}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.chip{font-size:14px;padding:6px 12px;border-radius:16px;border:1px solid var(--line);color:var(--mute)}
+.chip.on{border-color:var(--la);color:var(--ink);background:color-mix(in srgb,var(--la) 18%,transparent)}
+.seg{margin-bottom:12px}.seg>span{font-size:13px;color:var(--mute)}
+.method{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:28px}
+@media(max-width:860px){.method{grid-template-columns:minmax(0,1fr)}}
+ul{padding-left:20px;margin:8px 0}li{margin-bottom:6px}
+.foot{font-size:13px;color:var(--mute);border-top:1px solid var(--line)}
+.logo{display:inline-flex;align-items:center;margin-right:6px}.logo img{height:52px;width:auto;display:block}.brand{height:72px!important;width:auto;border-radius:10px;display:block}.fw .brand{height:56px!important}
+.on-light{display:none!important}
+@media(prefers-color-scheme:light){:root:not([data-theme=dark]) .on-dark{display:none!important}:root:not([data-theme=dark]) .on-light{display:inline-block!important}}
+:root[data-theme=light] .on-dark{display:none!important}:root[data-theme=light] .on-light{display:inline-block!important}
+.fw{display:flex;align-items:center;gap:16px;flex-wrap:wrap}.fw img{height:36px;width:auto}
+.aviso{margin-top:16px;border:1px dashed var(--line);border-radius:14px;padding:14px 18px;font-size:14px;color:var(--mute);background:color-mix(in srgb,var(--bg) 70%,transparent)}
+.err{background:var(--vivo);color:#fff;padding:16px;border-radius:12px}
+@media(max-width:860px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:520px){.grid{grid-template-columns:minmax(0,1fr)}.cell{min-height:0}}
+@media(max-width:600px){table{font-size:13px}.stack thead{display:none}.stack tr{display:grid;padding-block:10px;border-bottom:1px solid var(--line)}.stack td{display:flow-root;border:0;padding:3px 0;padding-inline-start:8em;text-align:start}.stack td::before{content:attr(data-l);float:inline-start;width:7.5em;margin-inline-start:-8em;color:var(--mute)}.stack td:empty{display:none}}
+
+.hasimg{position:relative;isolation:isolate}
+.hasimg::before{content:"";position:absolute;inset:0;z-index:-1;background:var(--img) center/cover no-repeat;opacity:var(--io,.55);-webkit-mask-image:linear-gradient(180deg,#000 0,rgba(0,0,0,.55) 45%,transparent 85%);mask-image:linear-gradient(180deg,#000 0,rgba(0,0,0,.55) 45%,transparent 85%)}
+.hasimg.foto::before{bottom:auto;height:min(620px,100%);opacity:1;background:linear-gradient(90deg,var(--bg) 0,color-mix(in srgb,var(--bg) 70%,transparent) 38%,transparent 72%),var(--img) right center/cover no-repeat;-webkit-mask-image:linear-gradient(180deg,#000 55%,transparent);mask-image:linear-gradient(180deg,#000 55%,transparent)}
+.alt.hasimg.foto::before{background:linear-gradient(90deg,var(--bg2) 0,color-mix(in srgb,var(--bg2) 70%,transparent) 38%,transparent 72%),var(--img) right center/cover no-repeat}
+@media(prefers-color-scheme:light){:root:not([data-theme=dark]) .hasimg.foto::before{opacity:.85}}
+:root[data-theme=light] .hasimg.foto::before{opacity:.85}
+@media(max-width:700px){.hasimg.foto::before{height:360px;background:linear-gradient(0deg,var(--bg) 0,transparent 70%),var(--img) center/cover no-repeat}}
+#topo.foto .lede{color:var(--ink);background:color-mix(in srgb,var(--bg) 72%,transparent);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);padding:16px 18px;border-radius:16px}#topo.foto .kick span{color:var(--ink)}
+.hasimg.foto .bh h2,.hasimg.foto .obj{text-shadow:0 1px 12px var(--bg),0 0 2px var(--bg)}.hasimg.foto .obj{color:var(--ink)}
+.abas{display:flex;gap:6px;flex-wrap:wrap;margin:4px 0 0}
+.abas button{font:600 14px "Red Hat Text",sans-serif;color:var(--ink);background:var(--bg2);border:1px solid var(--line);border-radius:22px;min-height:44px;padding:0 16px;cursor:pointer}
+.abas button[aria-pressed=true]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.aba{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.03em;color:var(--mute)}
+.emps{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,340px),1fr));gap:16px}
+.emp{background:var(--bg2);border:1px solid var(--line);border-radius:var(--r);padding:22px;display:flex;flex-direction:column;gap:10px}
+.alt .emp{background:var(--bg)}
+.emp h3{font-weight:800;font-size:24px}.emp .tp{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--co)}
+.emp p{margin:0;font-size:15px;color:var(--mute)}
+.emp .nw{border-top:1px solid var(--line);padding-top:10px;display:grid;gap:4px}
+.emp .nw a{color:var(--ink);font-weight:600;text-decoration:none}.emp .nw a:hover{text-decoration:underline}
+.emp .vz{font-size:14px;color:var(--mute);border-top:1px dashed var(--line);padding-top:10px}
+</style>
+<script>new MutationObserver(()=>{for(const c of document.querySelectorAll('.stack td:not([data-l])')){let i=0,p=c;while(p=p.previousElementSibling)i+=p.colSpan;c.dataset.l=c.closest('table').rows[0].cells[i]?.textContent||''}}).observe(document,{childList:true,subtree:true})</script>
+</head>
+<body>
+<div class="r">
+<header class="band" id="topo"><div class="w">
+  <div class="kick"><span class="logo"><img class="brand" src="img/logo-kelvin-raial.jpg" alt="Kelvin Raial"></span><b>Radar de Supply Chain · demo</b><span id="ed">Carregando…</span><span id="upd"></span></div>
+  <div class="tick" aria-label="Últimas"><b>ÚLTIMAS</b><div class="vp"><div class="tr" id="tick"></div></div></div>
+  <div class="hd"><h1 id="headline">Radar Estratégico de Supply Chain</h1>
+  <p class="lede" id="lede"></p></div>
+  <div class="grid" id="status" aria-label="Painel executivo"></div>
+  <div class="legend"><span class="k" style="--c:var(--az)">Normal</span><span class="k" style="--c:var(--am)">Atenção</span><span class="k" style="--c:var(--vivo)">Alerta</span><span class="k" style="--c:var(--bg3)">Sem dado</span></div>
+</div></header>
+<nav class="scroll" aria-label="Seções">
+  <a href="#b1" style="--c:var(--am)">1 Câmbio</a><a href="#b2" style="--c:var(--ro)">2 Commodities</a><a href="#b3" style="--c:var(--az)">3 Comex</a><a href="#b4" style="--c:var(--la)">4 Transporte</a><a href="#b5" style="--c:var(--co)">5 Mercado</a><a href="#b6" style="--c:var(--ght)">6 Notícias KRL</a><a href="#b7" style="--c:var(--vd)">7 Tecnologia</a><a href="#metodo">Como ler</a>
+</nav>
+<main id="blocks"></main>
+<section class="band" id="metodo"><div class="w">
+  <div class="bh"><h2>Como ler este radar</h2></div>
+  <div class="method" style="margin-top:20px">
+    <div class="panel">
+      <h3>Regras dos status</h3>
+      <table class="stack" id="rules"><thead><tr><th>Indicador</th><th>Regra</th></tr></thead><tbody></tbody></table>
+    </div>
+    <div class="panel">
+      <h3>Atualização</h3>
+      <p class="lede" style="margin-top:8px">Um fluxo do GitHub Actions roda em dias úteis pela manhã: busca as séries do Banco Central, atualiza câmbio, juros e inflação e reclassifica os status de dólar e euro pelas regras ao lado. Nesta demonstração, notícias e preços de commodities são estáticos. Cada número mostra a data e a fonte.</p>
+      <h3 style="margin-top:20px">Ainda não coberto</h3>
+      <ul id="pend"></ul>
+    </div>
+  </div>
+</div></section>
+<footer class="band foot"><div class="w fw"><img class="brand" src="img/logo-kelvin-raial.jpg" alt="Kelvin Raial" height="56"><span>Projeto demonstrativo de Kelvin Raial (Kelvin Barbosa da Silva) · KRL é uma empresa fictícia · Dados de mercado e notícias reais, com a fonte citada em cada item · As recomendações são exemplos, não decisões.</span></div></footer>
+</div>
+<script>
+{
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const url=u=>/^https:\/\//.test(u||'')?esc(u):'#';
+const br=(v,d=4)=>v.toLocaleString('pt-BR',{minimumFractionDigits:d,maximumFractionDigits:d});
+const pct=v=>(v>0?'+':'')+v.toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1})+'%';
+const AREAS=[['compras','Compras','--ro'],['estoque','Estoque','--am'],['comercial','Comercial','--la'],['logistica','Logística','--az']];
+const BC={b1:'--am',b2:'--ro',b3:'--az',b4:'--la',b5:'--co',b6:'--ght',b7:'--vd'};
+const img=u=>/^img\/[\w.-]+\.(svg|jpe?g|png|webp)$/i.test(u||'')?u:'';
+const bgAttr=u=>img(u)?` style="--img:url('${img(u)}')"`:'';
+const bgCls=u=>img(u)?' hasimg'+(/\.svg$/i.test(u)?'':' foto'):'';
+let D,cur='usd',range=90;
+
+function card(n){
+  const acts=AREAS.map(([k,l,cv])=>{const t=n.rec?.[k]||'';const na=/^Sem (ação|efeito)/.test(t);return `<div class="${na?'na':''}"><b style="--c:var(${cv})">${l}</b>${esc(t)}</div>`}).join('');
+  return `<article class="card" data-aba="${esc(n.aba||'')}">${n.aba?`<span class="aba">${esc(n.aba)}</span>`:''}<h3><a href="${url(n.url)}" target="_blank" rel="noopener">${esc(n.titulo)}</a></h3>
+  <div class="meta">${esc(n.data)} · ${esc(n.fonte)}</div><p>${esc(n.resumo)}</p>
+  <div class="tags"><span class="tag ${esc(n.impacto)}">Impacto ${esc(n.impacto)}</span><span class="tag ${esc(n.prob)}">Probabilidade ${esc(n.prob)}</span><span class="tag">Prazo ${esc(n.prazo)}</span></div>
+  <div class="acts">${acts}</div></article>`;
+}
+function emp(e){
+  const nw=(e.noticias||[]).map(n=>`<div><a href="${url(n.url)}" target="_blank" rel="noopener">${esc(n.titulo)}</a><div class="meta">${esc(n.data)} · ${esc(n.fonte)}</div><p>${esc(n.resumo)}</p></div>`).join('');
+  return `<article class="emp" id="emp-${esc((e.nome||'').toLowerCase().replace(/[^a-z0-9]+/g,'-'))}"><span class="tp">${esc(e.tipo)}</span><h3>${esc(e.nome)}</h3><p>${esc(e.perfil)}${e.url_perfil?` <a href="${url(e.url_perfil)}" target="_blank" rel="noopener">Fonte</a>`:''}</p>${nw?`<div class="nw">${nw}</div>`:''}${e.vazio?`<div class="vz">${esc(e.vazio)}</div>`:''}</article>`;
+}
+function prices(p){
+  if(!p.length)return '';
+    return `<div class="panel"><table class="stack"><thead><tr><th>Item</th><th>Valor</th><th>Variação</th><th>Data · fonte</th></tr></thead><tbody>${p.map(r=>`<tr><td>${esc(r.item)}</td><td class="nb">${esc(r.valor)}</td><td>${esc(r.var)}</td><td><a href="${url(r.url)}" target="_blank" rel="noopener">${esc(r.data)} · ${esc(r.fonte)}</a></td></tr>`).join('')}</tbody></table></div>`;
+}
+function fxPanel(){
+  return `<div class="two"><div class="panel fxp">
+   <div class="tabs" role="group" aria-label="Moeda"><button data-c="usd">Dólar</button><button data-c="eur">Euro</button><span style="flex:1"></span><button data-r="21">30 dias</button><button data-r="90">90 dias</button></div>
+   <div class="figtop"><div><div class="meta" id="fxname"></div><div class="big" id="fxlast"></div></div><div class="chg" id="fxchg"></div></div>
+   <div class="fig" id="fxfig"><svg id="fxsvg" role="img" aria-label="Gráfico da cotação"></svg><div class="tip" id="tip"></div></div>
+   <div class="src">PTAX venda, dias úteis · Fonte: Banco Central do Brasil (SGS 1 e 21619)</div></div>
+   <div style="display:grid;gap:20px;align-content:start">
+   <div class="panel"><h3>Indicadores</h3><table class="stack"><thead><tr><th>Indicador</th><th>Valor</th><th>Referência</th></tr></thead><tbody>${D.indicadores.map(i=>`<tr><td><a href="${url(i.url)}" target="_blank" rel="noopener">${esc(i.nome)}</a></td><td class="nb">${esc(i.valor)}</td><td>${esc(i.ref)}</td></tr>`).join('')}</tbody></table><div class="src">Fontes: Banco Central e Copom</div></div>
+   <div class="panel"><h3>Dólar · média mensal (12 meses)</h3><div class="bars" id="mbars"></div><div class="src">PTAX venda, média do mês · SGS 3698 · *mês em curso, média das PTAX diárias</div></div>
+   </div></div>`;
+}
+function render(){
+  $('#ed').textContent=D.edicao;
+  const u=new Date(D.atualizado);$('#upd').textContent='Atualizado em '+u.toLocaleString('pt-BR',{dateStyle:'short',timeStyle:'short',timeZone:'America/Sao_Paulo'});
+  $('#headline').textContent=D.manchete;$('#lede').textContent=D.resumo;
+  $('#status').innerHTML=D.status.map((s,i)=>`<div class="cell ${esc(s.nivel)}" style="animation-delay:${i*40}ms" title="${esc(s.regra)}"><span class="c">${esc(s.cat)}</span><span class="v">${esc(s.valor)}</span>${s.rotulo!==s.valor?`<span class="t">${esc(s.rotulo)}</span>`:''}<span class="n">${esc(s.nota)}</span><span class="s">${esc(s.data)} · ${esc(s.fonte)}</span></div>`).join('');
+  const tk=D.blocos.flatMap(b=>b.noticias.map(n=>`<span><i>${esc(({b1:'CÂMBIO',b2:'COMMODITIES',b3:'COMEX',b4:'TRANSPORTE',b5:'MERCADO',b6:'KRL',b7:'TECNOLOGIA'}[b.id]||'RADAR'))}</i>${esc(n.titulo)}</span>`)).join('');$('#tick').innerHTML=tk+'<span aria-hidden="true" style="display:contents">'+tk+'</span>';
+  $('#rules tbody').innerHTML=D.status.map(s=>`<tr><td>${esc(s.cat)}</td><td>${esc(s.regra)}</td></tr>`).join('');
+  $('#pend').innerHTML=D.pendencias.map(p=>`<li>${esc(p)}</li>`).join('');
+  const on=new Set(D.com_noticia||[]);
+  $('#blocks').innerHTML=D.blocos.map((b,i)=>`<section class="band ${i%2?'alt':''}${bgCls(b.fundo)}" id="${esc(b.id)}"${bgAttr(b.fundo)}><div class="w">
+   <div class="bh"><span class="num" style="--c:var(${BC[b.id]||'--az'})">Bloco ${esc(b.num)}</span><h2>${esc(b.titulo)}</h2></div><p class="obj">${esc(b.objetivo)}</p>
+   ${b.id==='b1'?fxPanel():''}${prices(b.precos)}
+   ${b.id==='b5'?`<div class="panel">${Object.entries(D.clientes).map(([s,l])=>`<div class="seg"><span>${esc(s)}</span><div class="chips">${l.map(c=>`<span class="chip ${on.has(c)?'on':''}">${esc(c)}</span>`).join('')}</div></div>`).join('')}<div class="src">Destacadas: empresas com notícia relevante nesta edição</div></div>`:''}
+   ${b.abas?`<div class="abas" role="group" aria-label="Filtrar ${esc(b.titulo)}"><button data-aba="" aria-pressed="true">Todas</button>${b.abas.map(a=>`<button data-aba="${esc(a)}" aria-pressed="false">${esc(a)}</button>`).join('')}</div>`:''}
+   ${b.empresas?`<div class="emps">${b.empresas.map(emp).join('')}</div>`:''}
+   ${b.noticias.length?`<div class="news">${b.noticias.map(card).join('')}</div>`:''}
+   ${b.aviso?`<div class="aviso">${esc(b.aviso)}</div>`:''}</div></section>`).join('');
+  const t=$('#topo');if(img(D.fundo_topo)){t.className+=bgCls(D.fundo_topo);t.style.setProperty('--img',`url('${img(D.fundo_topo)}')`)}
+  const mt=$('#metodo');if(img(D.fundo_metodo)){mt.className+=bgCls(D.fundo_metodo);mt.style.setProperty('--img',`url('${img(D.fundo_metodo)}')`)}
+  document.querySelectorAll('.abas').forEach(g=>g.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;g.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));const sec=g.closest('section');sec.querySelectorAll('.card').forEach(c=>{c.hidden=!!b.dataset.aba&&c.dataset.aba!==b.dataset.aba})}));
+  const m=D.fx.usd_mensal,mx=Math.max(...m.map(x=>x[1])),mn=Math.min(...m.map(x=>x[1]))*0.97;
+  $('#mbars').innerHTML=m.map((x,i)=>`<div class="bar"><span>${esc(x[0])}</span><i class="${i===m.length-1?'hot':''}" style="width:${((x[1]-mn)/(mx-mn)*100).toFixed(1)}%"></i><span>${br(x[1],2)}</span></div>`).join('');
+  document.querySelectorAll('.tabs button').forEach(b=>b.addEventListener('click',()=>{if(b.dataset.c)cur=b.dataset.c;if(b.dataset.r)range=+b.dataset.r;draw()}));
+  const ro=new ResizeObserver(draw);ro.observe($('#fxfig'));
+  draw();
+}
+function draw(){
+  const fig=$('#fxfig'),s=$('#fxsvg');if(!fig||!D)return;
+  document.querySelectorAll('.tabs button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.c?b.dataset.c===cur:+b.dataset.r===range)));
+  const all=D.fx[cur],pts=all.slice(-Math.min(range+1,all.length));
+  const last=pts[pts.length-1][1],first=pts[0][1],ch=(last/first-1)*100;
+  $('#fxname').textContent=(cur==='usd'?'Dólar':'Euro')+' · PTAX venda em '+pts[pts.length-1][0];
+  $('#fxlast').textContent='R$ '+br(last);
+  const c=$('#fxchg');c.textContent=pct(ch)+' desde '+pts[0][0];c.className='chg '+(ch>0?'up':'dn');
+  const W=s.clientWidth,H=s.clientHeight,nar=W<520,pl=nar?36:46,pr=12,pt=12,pb=26;
+  const vs=pts.map(p=>p[1]),lo=Math.min(...vs),hi=Math.max(...vs),pad=(hi-lo)*0.12||0.05,y0=lo-pad,y1=hi+pad;
+  const X=i=>pl+i*(W-pl-pr)/Math.max(1,pts.length-1),Y=v=>pt+(y1-v)/(y1-y0)*(H-pt-pb);
+  let g='';const tk=4;for(let k=0;k<=tk;k++){const v=y0+(y1-y0)*k/tk,yy=Y(v);g+=`<line class="gl" x1="${pl}" x2="${W-pr}" y1="${yy}" y2="${yy}"/><text class="tx" x="${pl-6}" y="${yy+4}" text-anchor="end">${br(v,2)}</text>`}
+  const step=Math.ceil(pts.length/(nar?3:6));pts.forEach((p,i)=>{if(i%step===0)g+=`<text class="tx" x="${X(i)}" y="${H-6}" text-anchor="middle">${p[0].slice(0,5)}</text>`});
+  const path=pts.map((p,i)=>(i?'L':'M')+X(i).toFixed(1)+','+Y(p[1]).toFixed(1)).join('');
+  const area=path+`L${X(pts.length-1)},${H-pb}L${pl},${H-pb}Z`;
+  s.innerHTML=`<defs><linearGradient id="ga" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#a855f7" stop-opacity=".35"/><stop offset="1" stop-color="#a855f7" stop-opacity="0"/></linearGradient></defs>${g}<path d="${area}" fill="url(#ga)"/><path class="pl" d="${path}" fill="none" stroke-width="2.5" stroke-linejoin="round"/><circle cx="${X(pts.length-1)}" cy="${Y(last)}" r="5" fill="#e11d48" stroke="#fff" stroke-width="2"/><line id="hl" class="hl" y1="${pt}" y2="${H-pb}" visibility="hidden"/><circle id="hc" class="hc" r="4" visibility="hidden"/>`;
+  const tip=$('#tip'),hl=s.querySelector('#hl'),hc=s.querySelector('#hc');
+  s.onpointermove=e=>{const r=s.getBoundingClientRect(),x=e.clientX-r.left;let i=Math.round((x-pl)/((W-pl-pr)/Math.max(1,pts.length-1)));i=Math.max(0,Math.min(pts.length-1,i));
+    const px=X(i),py=Y(pts[i][1]);hl.setAttribute('x1',px);hl.setAttribute('x2',px);hl.setAttribute('visibility','visible');hc.setAttribute('cx',px);hc.setAttribute('cy',py);hc.setAttribute('visibility','visible');
+    tip.style.display='block';tip.textContent=pts[i][0]+' · R$ '+br(pts[i][1]);const tw=tip.offsetWidth;tip.style.left=Math.min(Math.max(0,px-tw/2),W-tw)+'px';tip.style.top=Math.max(0,py-38)+'px'};
+  s.onpointerleave=()=>{tip.style.display='none';hl.setAttribute('visibility','hidden');hc.setAttribute('visibility','hidden')};
+}
+fetch('data.json',{cache:'no-store'}).then(r=>{if(!r.ok)throw new Error(r.status);return r.json()}).then(j=>{D=j;render()}).catch(()=>{$('#status').innerHTML='<div class="err">Não foi possível carregar os dados do radar. Recarregue a página em alguns minutos.</div>'});
+}
+</script>
+</body>
+</html>
