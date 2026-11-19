@@ -1,0 +1,28 @@
+name: Atualizar indicadores
+
+on:
+  schedule:
+    - cron: "40 10 * * 1-5"   # 7h40 em Brasília, dias úteis (o cron do GitHub usa UTC)
+  workflow_dispatch:          # permite rodar manualmente pela aba Actions
+
+permissions:
+  contents: write
+
+jobs:
+  atualizar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Coletar dados do Banco Central
+        run: python scripts/coletar_indicadores.py data.json
+      - name: Salvar alterações
+        run: |
+          git config user.name "radar-bot"
+          git config user.email "radar-bot@users.noreply.github.com"
+          git add data.json
+          git diff --cached --quiet || git commit -m "Atualiza indicadores $(date +%F)"
+          git push
+
